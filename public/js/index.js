@@ -16,6 +16,7 @@ const description = {
 
 let settings = {};
 
+// add button handler
 function add(name) {
     settings[name] = settings[name] + 1;
     get("add-" + name).text = `Add (${settings[name]})`;
@@ -49,16 +50,22 @@ function generateDescription() {
     return text
 }
 
+// get element helper
 function get(id) {
     return document.getElementById(id);
 }
 
+// remove element helper
+function remove(id) {
+    get(id).parentElement.removeChild(get(id));
+}
+
 function create() {
-    generateDescription();
-    get(JOIN).parentElement.removeChild();
-    get(CREATE).parentElement.removeChild();
+    remove(CREATE);
+    remove(JOIN);
     get(SETTINGS).hidden = false;
     get(FINISHED).hidden = false;
+    generateDescription();
 }
 
 function finish() {

@@ -28,8 +28,8 @@ class Game {
         return true;
     }
 
-    getCreatedTime() {
-        return this.createdTime;
+    isGameExpired() {
+        return Date.now() - this.createdTime > 86400;
     }
 
     _assignJob() {
