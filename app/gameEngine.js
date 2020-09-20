@@ -6,7 +6,7 @@ let cacheFile = path.join(cachePath, "cache.json");
 
 class GameEngine {
     constructor() {
-        // TODO: delete expired games
+        // TODO: add an async call to delete expired games
         this.games = this._loadGames();
     }
 
@@ -24,8 +24,10 @@ class GameEngine {
 
     getGame(id) {
         let game = this.games[id];
-        if (game.isGameExpired())
+        if (game.isGameExpired()) {
+            delete this.games[id];
             throw new Error("游戏已超时，一局游戏最长有效时间为一天 ：）");
+        }
         this._saveGames();
         return game;
     }
