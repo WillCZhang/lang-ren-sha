@@ -1,16 +1,26 @@
-let GameError = require('./Error/GameError');
+import GameError from "./Error/GameError.js";
 
 const GAME_EXPIRATION_TIME = 86400; // in seconds
 const MIN_PLAYER = 4; // Not sure
 const MAX_PLAYER = 20; // Not sure
 
-class Game {
-    constructor(creator, settings) {
+export default class Game {
+	public createdTime: any;
+	public creator: any;
+	public settings: any;
+	public playerCount: number;
+	public playerIds: any;
+	public assignment: any;
+	public seats: any;
+	public seatMap: boolean[];
+	public started: any;
+
+    constructor(creator: string, settings: any) {
         this.createdTime = Date.now();
         this.creator = creator; // 房主
         this.settings = settings; // 每个职业配比
         let count = 0;
-        for (let job of Object.keys(settings))
+        for (const job of Object.keys(settings))
             count += settings[job];
         if (count < MIN_PLAYER || count > MAX_PLAYER)
             throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
@@ -30,7 +40,7 @@ class Game {
      * @param seatNumber
      * @return {boolean}
      */
-    join(playerId, seatNumber) {
+    join(playerId: string, seatNumber: number) {
         if (this.started ||
             this.playerIds.length >= this.playerCount ||
             Object.values(this.seats).includes(seatNumber)) {
@@ -43,7 +53,7 @@ class Game {
         return true;
     }
 
-    start(playerId) {
+    start(playerId: string) {
         if (playerId !== this.creator || this.playerIds.length !== this.playerCount)
             return false;
         this._assignJob();
@@ -69,13 +79,13 @@ class Game {
         this.playerIds = this._shuffle(this.playerIds);
         this.playerIds = this._shuffle(this.playerIds);
 
-        for (let player of this.playerIds)
+        for (const player of this.playerIds)
             this.assignment[player] = this._getNextAvailableJob();
 
         delete this.settings;
     }
 
-    _shuffle(a) {
+    _shuffle(a: Array<string>) {
         for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [a[i], a[j]] = [a[j], a[i]];
@@ -84,7 +94,7 @@ class Game {
     }
 
     _getNextAvailableJob() {
-        for (let job of Object.keys(this.settings)) {
+        for (const job of Object.keys(this.settings)) {
             if (this.settings[job] === 0) {
                 delete this.settings[job];
             } else {
@@ -96,6 +106,3 @@ class Game {
         return undefined;
     }
 }
-
-module.exports = Game;
-module.exports = Game.prototype;

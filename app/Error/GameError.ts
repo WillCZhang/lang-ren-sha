@@ -1,10 +1,12 @@
 export default class GameError extends Error {
-    constructor(message) {
+	public message: any;
+
+    constructor(message: string) {
         super();
         this.message = message;
     }
+
     getMessage() {
         return this.message;
     }
 }
-//# sourceMappingURL=GameError.js.map

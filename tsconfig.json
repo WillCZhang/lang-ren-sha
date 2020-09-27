@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "types": ["node"],
+    "target": "ES6",
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "lib": [
+      "es7",
+      "es2017.object",
+      "dom"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  },
+  "filesGlob": [
+    "*.ts",
+    "/app/**/*.ts",
+    "/test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
