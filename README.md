@@ -14,8 +14,8 @@ Module: [app](./app)
 
 ### Frontend
 
-Pure `HTML + CSS + JS`. Should refactor to view engines / frontend frameworks.
+Pug view engine + JS + CSS
 
-HTML: [public/pages](./public/pages)
+PUG: [public/pages](./views)
 
 JS: [public/js](./public/js)

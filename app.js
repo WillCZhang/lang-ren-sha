@@ -6,7 +6,6 @@ let session = require('express-session');
 let FileStore = require('session-file-store')(session);
 let logger = require('morgan');
 
-let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
 let appRouter = require('./routes/app');
 
@@ -23,7 +22,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: 'wjerwleivpjosjfwer', // private key, anything random
+  secret: 'wjerwleivpjosjfwer', // TODO: remove from Github && change it
   store: new FileStore(),
   saveUninitialized: false,
   resave: false,
@@ -32,9 +31,8 @@ app.use(session({
   }
 }));
 
-app.use('/', indexRouter);
+app.use('/', appRouter);
 app.use('/users', usersRouter);
-app.use('/app', appRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

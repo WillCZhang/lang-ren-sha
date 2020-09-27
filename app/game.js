@@ -1,35 +1,66 @@
+let GameError = require('./Error/GameError');
+
+const GAME_EXPIRATION_TIME = 86400; // in seconds
+const MIN_PLAYER = 4; // Not sure
+const MAX_PLAYER = 20; // Not sure
+
 class Game {
-    // TODO：不确定要不要最少or最多玩家数目check…感觉没必要
-    // 理论上说如果abstraction做的好的话不需要做检查
     constructor(creator, settings) {
         this.createdTime = Date.now();
+        this.creator = creator; // 房主
         this.settings = settings; // 每个职业配比
         let count = 0;
         for (let job of Object.keys(settings))
             count += settings[job];
-        this.players = count; // 玩家数量
+        if (count < MIN_PLAYER || count > MAX_PLAYER)
+            throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
+        this.playerCount = count; // 玩家数量
         this.playerIds = [creator]; // 玩家id list
-        this.assignment = {}; // 玩家职业分配（start之后才会有）
+        this.assignment = {}; // 玩家职业分配, Key is player ID, value is the player's job
+        this.seats = {}; // Key is player ID, value is the player's seat number
+        this.seatMap = [];
+        for (let i = 0; i < count; i++)
+            this.seatMap.push(false);
         this.started = false;
     }
 
-    join(playerId) {
-        if (this.started || this.playerIds.length >= this.players)
+    /**
+     * Should be invoked when the player sits on a chair
+     * @param playerId
+     * @param seatNumber
+     * @return {boolean}
+     */
+    join(playerId, seatNumber) {
+        if (this.started ||
+            this.playerIds.length >= this.playerCount ||
+            Object.values(this.seats).includes(seatNumber)) {
             return false;
+        }
         this.playerIds.concat(playerId);
+        this.seatMap[this.seats[playerId]] = false;
+        this.seatMap[seatNumber] = true;
+        this.seats[playerId] = seatNumber;
         return true;
     }
 
-    start() {
-        if (this.playerIds.length !== this.players)
+    start(playerId) {
+        if (playerId !== this.creator || this.playerIds.length !== this.playerCount)
             return false;
         this._assignJob();
         this.started = true;
         return true;
     }
 
+    /**
+     * For simplicity (for rendering), returns a boolean list to indicate whether a seat
+     * @return {{}}
+     */
+    getCurrentSeatMap() {
+        return this.seatMap;
+    }
+
     isGameExpired() {
-        return Date.now() - this.createdTime > 86400;
+        return Date.now() - this.createdTime > GAME_EXPIRATION_TIME;
     }
 
     _assignJob() {
@@ -67,3 +98,4 @@ class Game {
 }
 
 module.exports = Game;
+module.exports = Game.prototype;
