@@ -12,3 +12,5 @@ function sit(roomdId, index) {
         }
     });
 }
+
+setTimeout(() => window.location.reload(), 10000);

@@ -85,13 +85,7 @@ function finish() {
 
 function confirm() {
     let roomId = get("roomId").value;
-    $.get('/rooms/' + roomId, (data) => {
-        if (data.code === 200) {
-            window.location.assign(data.data);
-        } else {
-            alert(data.data);
-        }
-    });
+    window.location.assign('/rooms/' + roomId);
 }
 
 get(CREATE).addEventListener("click", create);
