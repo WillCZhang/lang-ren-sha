@@ -3,7 +3,8 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import session from "express-session";
-let FileStore = require('session-file-store')(session);
+
+const FileStore = require('session-file-store')(session);
 import logger from "morgan";
 
 import {createRooms, index, rooms, sit} from "./routes/app";

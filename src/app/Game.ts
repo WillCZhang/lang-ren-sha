@@ -1,5 +1,4 @@
 import GameError from "./Error/GameError.js";
-import set = Reflect.set;
 
 const GAME_EXPIRATION_TIME = 86400 * 1000; // in ms
 const MIN_PLAYER = 4; // Not sure
@@ -130,7 +129,7 @@ export default class Game {
     }
 
     private formSettingText() {
-        let total = [];
+        const total = [];
         Object.keys(this.settings).forEach(key => total.push(`${key}: ${this.settings[key]}名`));
         return total.join(" ");
     }
