@@ -85,10 +85,14 @@ export default class GameEngine {
             return;
         }
         this.isSaving = true;
-        fs.renameSync(cacheFile, cacheBackup);
+        if (fs.existsSync(cacheFile)) {
+            fs.renameSync(cacheFile, cacheBackup);
+        }
         // should be async to reduce latency
         fs.writeFile(cacheFile, JSON.stringify(this.games), (err: any) => {
-            fs.unlinkSync(cacheBackup);
+            if (fs.existsSync(cacheBackup)) {
+                fs.unlinkSync(cacheBackup);
+            }
             this.isSaving = false;
             if (err) {
                 throw err;
