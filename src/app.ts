@@ -3,10 +3,10 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import session from "express-session";
-// import FileStore from 'session-file-store';
+let FileStore = require('session-file-store')(session);
 import logger from "morgan";
 
-import {createRooms, index, rooms} from "./routes/app";
+import {createRooms, index, rooms, sit} from "./routes/app";
 import Log from "./app/Util";
 
 const app = express();
@@ -21,26 +21,30 @@ app.set("port", port);
 
 app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "/../frontend/public")));
+app.use("/js", express.static(path.join(__dirname + '/../frontend/public/js')));
 
 app.use(session({
-  secret: "wjerwleiaffwer", // TODO: remove from Github && change it
-  saveUninitialized: false,
-  resave: false,
-  cookie: {
-    maxAge: 100000 // expire about a day
-  }
+    name: "skey",
+    secret: "wjerwleiaffwer", // TODO: remove from Github && change it
+    saveUninitialized: false,
+    store: new FileStore(),
+    resave: false,
+    cookie: {
+        maxAge: 100000 * 1000 // expire about a day
+    }
 }));
 
 app.get("/", index);
 app.get("/rooms/:id", rooms);
 app.post("/create-room", createRooms);
+app.post("/sit", sit);
 
 // catch 404 and forward to error handler
 app.use(function (req: any, res: any, next: (arg0: any) => void) {
-  next(createError(404));
+    next(createError(404));
 });
 
 // error handler
@@ -48,17 +52,17 @@ app.use(function (err: any,
                   req: any,
                   res: any,
                   next: any) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+    // render the error page
+    res.status(err.status || 500);
+    res.render("error");
 });
 
 app.listen(port, () => {
-  console.log(`🚀 App listening on the port ${port}`);
+    Log.info(`🚀 App listening on the port ${port}`);
 });
 
 export default app;

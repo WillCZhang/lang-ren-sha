@@ -65,12 +65,33 @@ function finish() {
     query["settings"] = JSON.stringify(settings);
     console.log(query);
     $.post('/create-room', query, (data) => {
-        console.log(data);
+        if (data.code === 200) {
+            window.location.assign(data.data);
+        } else {
+            alert(data.data);
+        }
     });
+    // TODO: figure out what's the best way to handle responses
+    // const request = new Request('/create-room', {method: 'POST', body: query});
+    // fetch(request).then(res => {
+    //     if (res.status === 200) {
+    //         window.location.assign();
+    //     } else {
+    //         console.log(res.body.message)
+    //         alert(res.text());
+    //     }
+    // })
 }
 
 function confirm() {
-
+    let roomId = get("roomId").value;
+    $.get('/rooms/' + roomId, (data) => {
+        if (data.code === 200) {
+            window.location.assign(data.data);
+        } else {
+            alert(data.data);
+        }
+    });
 }
 
 get(CREATE).addEventListener("click", create);

@@ -1,19 +1,21 @@
 import GameError from "./Error/GameError.js";
+import set = Reflect.set;
 
-const GAME_EXPIRATION_TIME = 86400; // in seconds
+const GAME_EXPIRATION_TIME = 86400 * 1000; // in ms
 const MIN_PLAYER = 4; // Not sure
 const MAX_PLAYER = 20; // Not sure
 
 export default class Game {
     public createdTime: any;
     public creator: any;
-    public settings: any;
+    public settings: {[name: string]: number};
     public playerCount: number;
     public playerIds: any;
     public assignment: any;
     public seats: any;
     public seatMap: boolean[];
     public started: any;
+    private settingText: string;
 
     constructor(creator: string, settings: any) {
         this.createdTime = Date.now();
@@ -23,6 +25,7 @@ export default class Game {
         for (const job of Object.keys(settings)) {
             count += settings[job];
         }
+        this.settingText = this.formSettingText();
         if (count < MIN_PLAYER || count > MAX_PLAYER) {
             throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
         }
@@ -43,7 +46,7 @@ export default class Game {
      * @param seatNumber
      * @return {boolean}
      */
-    public join(playerId: string, seatNumber: number) {
+    public join(playerId: string, seatNumber: number): boolean {
         if (this.started ||
             this.playerIds.length >= this.playerCount ||
             Object.values(this.seats).includes(seatNumber)) {
@@ -56,7 +59,7 @@ export default class Game {
         return true;
     }
 
-    public start(playerId: string) {
+    public start(playerId: string): boolean {
         if (playerId !== this.creator || this.playerIds.length !== this.playerCount) {
             return false;
         }
@@ -67,21 +70,36 @@ export default class Game {
 
     /**
      * For simplicity (for rendering), returns a boolean list to indicate whether a seat
-     * @return {{}}
      */
-    public getCurrentSeatMap() {
+    public getCurrentSeatMap(): Array<boolean> {
         return this.seatMap;
     }
 
-    public isGameExpired() {
+    public getSeatNumber(playerId): number {
+        return this.seats[playerId];
+    }
+
+    public getPlayerCount(): number {
+        return this.playerCount;
+    }
+
+    public getRoomConfiguration(): string {
+        return this.settingText? this.settingText : this.formSettingText();
+    }
+
+    public isCreator(playerId: string): boolean {
+        return this.creator === playerId;
+    }
+
+    public isGameExpired(): boolean {
         return Date.now() - this.createdTime > GAME_EXPIRATION_TIME;
     }
 
     private _assignJob() {
         // shuffle 3 times before assign
-        this.playerIds = this._shuffle(this.playerIds);
-        this.playerIds = this._shuffle(this.playerIds);
-        this.playerIds = this._shuffle(this.playerIds);
+        this.playerIds = Game._shuffle(this.playerIds);
+        this.playerIds = Game._shuffle(this.playerIds);
+        this.playerIds = Game._shuffle(this.playerIds);
 
         for (const player of this.playerIds) {
             this.assignment[player] = this._getNextAvailableJob();
@@ -90,7 +108,7 @@ export default class Game {
         delete this.settings;
     }
 
-    private _shuffle(a: string[]) {
+    private static _shuffle(a: string[]) {
         for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [a[i], a[j]] = [a[j], a[i]];
@@ -109,5 +127,11 @@ export default class Game {
         }
         // will never reach this line
         return undefined;
+    }
+
+    private formSettingText() {
+        let total = [];
+        Object.keys(this.settings).forEach(key => total.push(`${key}: ${this.settings[key]}名`));
+        return total.join(" ");
     }
 }

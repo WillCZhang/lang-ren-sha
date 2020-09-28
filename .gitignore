@@ -3,6 +3,7 @@ src/*.js*
 src/**/*.js*
 .idea
 *.DS_Store
+sessions
 
 # Logs
 logs

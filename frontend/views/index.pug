@@ -12,15 +12,15 @@ block content
               p(class="card-text")= description
               a(class="btn btn-primary" style="color: white" id="add-" + index onclick="add('" + index + "')") 添加 (0)
     div(class="row" id="room" style="margin-top: 100px" hidden)
-        input(class="form-control form-control-lg" type="text" placeholder="房间号")
+        input(class="form-control form-control-lg" type="text" id="roomId" placeholder="房间号")
   div(class="row w-100")
     div(class="col-lg-4 mx-auto")
       div(class="text-left p-5")
         form
           div(class="mt-5" id="finish" hidden)
-            a(href="#" class="btn btn-block btn-primary btn-lg") 创建!
+            a(style="color: white" class="btn btn-block btn-primary btn-lg") 创建!
           div(class="mt-5" id="confirm" hidden)
-            a(href="#" class="btn btn-block btn-primary btn-lg") 加入！
+            a(style="color: white" class="btn btn-block btn-primary btn-lg") 加入！
           div(class="mt-5" id="cancel" hidden)
             a(href="#" class="btn btn-block btn-warning btn-lg") 取消
           div(class="mt-5" id="create")

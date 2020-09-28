@@ -1,11 +1,12 @@
 import * as fs from "fs";
 import path from "path";
-import GameError from "./Error/GameError.js";
-import Game from "./Game.js";
+import GameError from "./Error/GameError";
+import Game from "./Game";
 import Log from "./Util";
 
-const cachePath = "../data";
+const cachePath = path.join(__dirname, "../data");
 const cacheFile = path.join(cachePath, "cache.json");
+const cacheBackup = path.join(cachePath, "cache-backup.json");
 
 const MAX_ID_LENGTH = 8;
 const MAX_GAME_ID = 100000000;
@@ -16,11 +17,13 @@ const GARBAGE_COLLECTION_THRESHOLD = MAX_GAME_ID / 2;
  * should perform validation before invoke the Engine.
  */
 export default class GameEngine {
-    public games: any;
+    private games: { [key: string]: Game };
+    private isSaving: boolean;
 
     constructor() {
-        this.games = this._loadGames();
-        this._removeExpiredGames().then((counter) => Log.info(`removed ${counter} expired games`, counter));
+        this.games = GameEngine._loadGames();
+        this._saveGames();
+        this._removeExpiredGames();
     }
 
     /**
@@ -31,7 +34,7 @@ export default class GameEngine {
      * @return string id
      */
     public newGame(creator: string, settings: any) {
-        const id = this._generateGameId();
+        const id: string = this._generateGameId();
         this.games[id] = new Game(creator, settings);
         this._saveGames();
         return id;
@@ -43,7 +46,7 @@ export default class GameEngine {
      * @return Game the game
      */
     public getGame(id: string) {
-        const game = this.games[id];
+        const game: Game = this.games[id];
         if (!game) {
             throw new GameError("游戏ID不存在");
         }
@@ -57,7 +60,7 @@ export default class GameEngine {
 
     private _generateGameId() {
         if (Object.keys(this.games).length > GARBAGE_COLLECTION_THRESHOLD) {
-            this._removeExpiredGames().then((counter) => Log.info("removed {} expired games", counter));
+            this._removeExpiredGames();
         }
 
         let id = Math.floor(Math.random() * MAX_GAME_ID).toString();
@@ -73,18 +76,39 @@ export default class GameEngine {
         return id;
     }
 
+    /***
+     * Thread-safe & recoverable save
+     * @private
+     */
     private _saveGames() {
+        if (this.isSaving) {
+            return;
+        }
+        this.isSaving = true;
+        fs.renameSync(cacheFile, cacheBackup);
         // should be async to reduce latency
         fs.writeFile(cacheFile, JSON.stringify(this.games), (err: any) => {
+            fs.unlinkSync(cacheBackup);
+            this.isSaving = false;
             if (err) {
                 throw err;
             }
         });
     }
 
-    private _loadGames() {
+    /***
+     * recoverable load - should run once only
+     * @private
+     */
+    private static _loadGames() {
         try {
-            return JSON.parse(fs.readFileSync(cacheFile).toString());
+            if (fs.existsSync(cacheBackup)) {
+                fs.unlinkSync(cacheFile);
+                fs.renameSync(cacheBackup, cacheFile);
+            }
+            const unParsedObjects = JSON.parse(fs.readFileSync(cacheFile).toString());
+            Object.keys(unParsedObjects).forEach(key => Object.setPrototypeOf(unParsedObjects[key], Game.prototype));
+            return unParsedObjects;
         } catch (e) {
             fs.mkdir(cachePath, (err: any) => {
                 /* very likely the dir exists, do nothing, other errs will cause error when saving */
@@ -93,7 +117,7 @@ export default class GameEngine {
         }
     }
 
-    private _removeExpiredGames() {
+    private _removeExpiredGames(): Promise<number> {
         return new Promise((fulfill, reject) => {
             let counter = 0;
             for (const id of Object.keys(this.games)) {
@@ -103,6 +127,7 @@ export default class GameEngine {
                     counter++;
                 }
             }
+            Log.info(`removed ${counter} expired games`);
             fulfill(counter);
         });
     }
