@@ -6,16 +6,16 @@ run project by `node start`
 
 `Node.js + express` 
 
-API Entry point: [app.js](./app.js)
+API Entry point: [app.js](src/app.js)
 
-API Routers: [routes](./routes)
+API Routers: [routes](src/routes)
 
-Module: [app](./app)
+Module: [app](src/app)
 
 ### Frontend
 
 Pug view engine + JS + CSS
 
-PUG: [public/pages](./views)
+PUG: [public/pages](frontend/views)
 
-JS: [public/js](./public/js)
+JS: [public/js](frontend/public/js)

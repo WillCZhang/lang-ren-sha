@@ -6,7 +6,7 @@ export default class GameError extends Error {
         this.message = message;
     }
 
-    getMessage() {
+    public getMessage() {
         return this.message;
     }
 }

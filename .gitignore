@@ -1,4 +1,6 @@
-data
+src/data
+src/*.js*
+src/**/*.js*
 .idea
 *.DS_Store
 

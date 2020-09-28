@@ -1,24 +1,32 @@
-import GameError from "./Error/GameError.js";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const GameError_js_1 = __importDefault(require("./Error/GameError.js"));
 const GAME_EXPIRATION_TIME = 86400; // in seconds
 const MIN_PLAYER = 4; // Not sure
 const MAX_PLAYER = 20; // Not sure
-export default class Game {
+class Game {
     constructor(creator, settings) {
         this.createdTime = Date.now();
         this.creator = creator; // 房主
         this.settings = settings; // 每个职业配比
         let count = 0;
-        for (const job of Object.keys(settings))
+        for (const job of Object.keys(settings)) {
             count += settings[job];
-        if (count < MIN_PLAYER || count > MAX_PLAYER)
-            throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
+        }
+        if (count < MIN_PLAYER || count > MAX_PLAYER) {
+            throw new GameError_js_1.default(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
+        }
         this.playerCount = count; // 玩家数量
         this.playerIds = [creator]; // 玩家id list
         this.assignment = {}; // 玩家职业分配, Key is player ID, value is the player's job
         this.seats = {}; // Key is player ID, value is the player's seat number
         this.seatMap = [];
-        for (let i = 0; i < count; i++)
+        for (let i = 0; i < count; i++) {
             this.seatMap.push(false);
+        }
         this.started = false;
     }
     /**
@@ -40,8 +48,9 @@ export default class Game {
         return true;
     }
     start(playerId) {
-        if (playerId !== this.creator || this.playerIds.length !== this.playerCount)
+        if (playerId !== this.creator || this.playerIds.length !== this.playerCount) {
             return false;
+        }
         this._assignJob();
         this.started = true;
         return true;
@@ -61,8 +70,9 @@ export default class Game {
         this.playerIds = this._shuffle(this.playerIds);
         this.playerIds = this._shuffle(this.playerIds);
         this.playerIds = this._shuffle(this.playerIds);
-        for (const player of this.playerIds)
+        for (const player of this.playerIds) {
             this.assignment[player] = this._getNextAvailableJob();
+        }
         delete this.settings;
     }
     _shuffle(a) {
@@ -86,4 +96,5 @@ export default class Game {
         return undefined;
     }
 }
+exports.default = Game;
 //# sourceMappingURL=Game.js.map

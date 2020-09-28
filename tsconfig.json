@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "module": "es6",
-    "types": ["node"],
+    "module": "commonjs",
     "target": "ES6",
     "preserveConstEnums": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "lib": [
       "es7",
@@ -16,6 +17,7 @@
   },
   "filesGlob": [
     "*.ts",
+    "/**/*.ts",
     "/app/**/*.ts",
     "/test/**/*.ts"
   ],

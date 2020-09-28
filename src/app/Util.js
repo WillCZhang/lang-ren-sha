@@ -1,24 +1,26 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Collection of logging methods. Useful for making the output easier to read and understand.
  */
-export default class Log {
-    public static trace(...msg: any[]): void {
+/* tslint:disable */
+/* eslint-disable */
+class Log {
+    static trace(...msg) {
         console.log(`<T> ${new Date().toLocaleString()}:`, ...msg);
     }
-
-    public static info(...msg: any[]): void {
+    static info(...msg) {
         console.info(`<I> ${new Date().toLocaleString()}:`, ...msg);
     }
-
-    public static warn(...msg: any[]): void {
+    static warn(...msg) {
         console.warn(`<W> ${new Date().toLocaleString()}:`, ...msg);
     }
-
-    public static error(...msg: any[]): void {
+    static error(...msg) {
         console.error(`<E> ${new Date().toLocaleString()}:`, ...msg);
     }
-
-    public static test(...msg: any[]): void {
+    static test(...msg) {
         console.log(`<X> ${new Date().toLocaleString()}:`, ...msg);
     }
 }
+exports.default = Log;
+//# sourceMappingURL=Util.js.map
