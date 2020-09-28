@@ -13,7 +13,7 @@ export default class Game {
     private readonly assignment: { [playerId: string]: string };
     private readonly seats: { [playerId: string]: number };
     private readonly seatMap: boolean[];
-    public started: any;
+    private started: any;
     private readonly settingText: string;
 
     constructor(creator: string, settings: any) {
@@ -65,6 +65,7 @@ export default class Game {
     public leave(playerId: string) {
         if (this.playerInTheRoom(playerId)) {
             this.seatMap[this.seats[playerId]] = false;
+            delete this.seats[playerId];
             const tempIds = [];
             this.playerIds.forEach(id => {
                 if (id !== playerId) tempIds.push(id);
