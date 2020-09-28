@@ -8,8 +8,15 @@ function sit(roomdId, index) {
             window.location.reload();
         } else {
             alert(data.data);
-            window.location.reload();
         }
+    });
+    localStorage.setItem("lastSeenRoom", roomdId);
+}
+
+function cancel(roomdId) {
+    $.post('/leave', {roomId: roomdId}, () => {
+        localStorage.clear();
+        window.location.assign("/");
     });
 }
 

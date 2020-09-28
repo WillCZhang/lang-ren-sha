@@ -1,6 +1,13 @@
 extends layout
 
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  div(class="container" style="margin-top: 40px")
+    div(class="row w-100")
+      div(class="col-lg-4 mx-auto")
+        div(class="text-center p-2")
+          h3= message
+  div(class="container-fluid")
+    div(class="row w-100")
+      div(class="col-lg-4 mx-auto")
+        div(class="text-center p-2")
+          a(class="btn btn-block btn-warning btn-lg" href="/") 返回主页

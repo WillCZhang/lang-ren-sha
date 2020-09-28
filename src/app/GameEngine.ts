@@ -2,7 +2,7 @@ import * as fs from "fs";
 import path from "path";
 import GameError from "./Error/GameError";
 import Game from "./Game";
-import Log from "./Util";
+import Log from "./Logger";
 
 const cachePath = path.join(__dirname, "../data");
 const cacheFile = path.join(cachePath, "cache.json");
@@ -48,7 +48,7 @@ export default class GameEngine {
     public getGame(id: string) {
         const game: Game = this.games[id];
         if (!game) {
-            throw new GameError("游戏ID不存在");
+            throw new GameError("该房间已经被解散啦");
         }
         if (game.isGameExpired()) {
             delete this.games[id];
@@ -56,6 +56,11 @@ export default class GameEngine {
         }
         this._saveGames();
         return game;
+    }
+
+    public deleteGame(id: string) {
+        delete this.games[id];
+        this._saveGames();
     }
 
     private _generateGameId() {

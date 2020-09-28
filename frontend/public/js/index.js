@@ -1,3 +1,9 @@
+window.onload = () => {
+    if (localStorage.getItem("lastSeenRoom")) {
+        window.location.assign("/rooms/" + localStorage.getItem("lastSeenRoom"));
+    }
+};
+
 // Element ids
 const JOIN = "join";
 const CREATE = "create";
@@ -85,7 +91,8 @@ function finish() {
 
 function confirm() {
     let roomId = get("roomId").value;
-    window.location.assign('/rooms/' + roomId);
+    let location = '/rooms/' + roomId;
+    window.location.assign(location);
 }
 
 get(CREATE).addEventListener("click", create);

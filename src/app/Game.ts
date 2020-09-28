@@ -5,16 +5,16 @@ const MIN_PLAYER = 4; // Not sure
 const MAX_PLAYER = 20; // Not sure
 
 export default class Game {
-    public createdTime: any;
-    public creator: any;
-    public settings: {[name: string]: number};
-    public playerCount: number;
-    public playerIds: any;
-    public assignment: any;
-    public seats: any;
-    public seatMap: boolean[];
+    private readonly createdTime: any;
+    private readonly creator: any;
+    private settings: { [name: string]: number };
+    private readonly roomSize: number;
+    private playerIds: Array<string>;
+    private readonly assignment: { [playerId: string]: string };
+    private readonly seats: { [playerId: string]: number };
+    private readonly seatMap: boolean[];
     public started: any;
-    private settingText: string;
+    private readonly settingText: string;
 
     constructor(creator: string, settings: any) {
         this.createdTime = Date.now();
@@ -28,7 +28,7 @@ export default class Game {
         if (count < MIN_PLAYER || count > MAX_PLAYER) {
             throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
         }
-        this.playerCount = count; // 玩家数量
+        this.roomSize = count; // 玩家数量
         this.playerIds = [creator]; // 玩家id list
         this.assignment = {}; // 玩家职业分配, Key is player ID, value is the player's job
         this.seats = {}; // Key is player ID, value is the player's seat number
@@ -47,7 +47,7 @@ export default class Game {
      */
     public join(playerId: string, seatNumber: number): boolean {
         if (this.started ||
-            this.playerIds.length >= this.playerCount ||
+            this.playerIds.length >= this.roomSize ||
             Object.values(this.seats).includes(seatNumber)) {
             return false;
         }
@@ -58,8 +58,27 @@ export default class Game {
         return true;
     }
 
+    /**
+     * leave a room, not an ideal implementation, but should be fine
+     * @param playerId
+     */
+    public leave(playerId: string) {
+        if (this.playerInTheRoom(playerId)) {
+            this.seatMap[this.seats[playerId]] = false;
+            const tempIds = [];
+            this.playerIds.forEach(id => {
+                if (id !== playerId) tempIds.push(id);
+            });
+            this.playerIds = tempIds;
+        }
+    }
+
+    public playerInTheRoom(playerId: string): boolean {
+        return Object.keys(this.seats).includes(playerId);
+    }
+
     public start(playerId: string): boolean {
-        if (playerId !== this.creator || this.playerIds.length !== this.playerCount) {
+        if (playerId !== this.creator || this.playerIds.length !== this.roomSize) {
             return false;
         }
         this._assignJob();
@@ -78,12 +97,12 @@ export default class Game {
         return this.seats[playerId];
     }
 
-    public getPlayerCount(): number {
-        return this.playerCount;
+    public getRoomSize(): number {
+        return this.roomSize;
     }
 
     public getRoomConfiguration(): string {
-        return this.settingText? this.settingText : this.formSettingText();
+        return this.settingText ? this.settingText : this.formSettingText();
     }
 
     public isCreator(playerId: string): boolean {
