@@ -4,11 +4,11 @@ run project by `node start`
 
 ### Backend
 
-`Node.js + express` 
+`Node.js + express + TypeScript` 
 
-API Entry point: [app.js](src/app.js)
+Entry point: [app](src/app.ts)
 
-API Routers: [routes](src/routes)
+API Routers: [routes](src/routes) - TODO: write swagger API doc
 
 Module: [app](src/app)
 

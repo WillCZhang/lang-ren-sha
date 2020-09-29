@@ -7,7 +7,7 @@ import session from "express-session";
 const FileStore = require('session-file-store')(session);
 import logger from "morgan";
 
-import {createRooms, index, leaveRoom, rooms, sit} from "./routes/app";
+import {createRooms, index, leaveRoom, rooms, sit} from "./routes/appRouters";
 import Log from "./app/util/Logger";
 
 const app = express();
