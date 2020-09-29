@@ -1,18 +1,17 @@
-import GameError from "./Error/GameError.js";
+import GameError from "./error/GameError.js";
 
-const GAME_EXPIRATION_TIME = 86400 * 1000; // in ms
+const ROOM_EXPIRATION_TIME = 86400 * 1000; // in ms
 const MIN_PLAYER = 4; // Not sure
 const MAX_PLAYER = 20; // Not sure
 
-export default class Game {
+export default class Room {
     private readonly createdTime: any;
     private readonly creator: any;
     private settings: { [name: string]: number };
-    private readonly roomSize: number;
-    private playerIds: Array<string>;
+    private roomSize: number;
     private readonly assignment: { [playerId: string]: string };
-    private readonly seats: { [playerId: string]: number };
-    private readonly seatMap: boolean[];
+    private readonly seatMap: { [playerId: string]: number };
+    private readonly seatStatus: boolean[];
     private started: any;
     private readonly settingText: string;
 
@@ -20,21 +19,19 @@ export default class Game {
         this.createdTime = Date.now();
         this.creator = creator; // 房主
         this.settings = settings; // 每个职业配比
-        let count = 0;
+        this.roomSize = 0;
         for (const job of Object.keys(settings)) {
-            count += settings[job];
+            this.roomSize += settings[job];
         }
-        this.settingText = this.formSettingText();
-        if (count < MIN_PLAYER || count > MAX_PLAYER) {
+        if (this.roomSize < MIN_PLAYER || this.roomSize > MAX_PLAYER) {
             throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
         }
-        this.roomSize = count; // 玩家数量
-        this.playerIds = [creator]; // 玩家id list
+        this.settingText = this.formateSettingText();
         this.assignment = {}; // 玩家职业分配, Key is player ID, value is the player's job
-        this.seats = {}; // Key is player ID, value is the player's seat number
-        this.seatMap = [];
-        for (let i = 0; i < count; i++) {
-            this.seatMap.push(false);
+        this.seatMap = {}; // Key is player ID, value is the player's seat number
+        this.seatStatus = [];
+        for (let i = 0; i < this.roomSize; i++) {
+            this.seatStatus.push(false);
         }
         this.started = false;
     }
@@ -47,14 +44,15 @@ export default class Game {
      */
     public join(playerId: string, seatNumber: number): boolean {
         if (this.started ||
-            this.playerIds.length >= this.roomSize ||
-            Object.values(this.seats).includes(seatNumber)) {
+            Object.keys(this.seatMap).length >= this.roomSize ||
+            this.seatStatus[seatNumber]) {
             return false;
         }
-        this.playerIds.concat(playerId);
-        this.seatMap[this.seats[playerId]] = false;
-        this.seatMap[seatNumber] = true;
-        this.seats[playerId] = seatNumber;
+        if (this.playerInTheRoom(playerId)) {
+            this.seatStatus[this.seatMap[playerId]] = false;
+        }
+        this.seatStatus[seatNumber] = true;
+        this.seatMap[playerId] = seatNumber;
         return true;
     }
 
@@ -64,22 +62,17 @@ export default class Game {
      */
     public leave(playerId: string) {
         if (this.playerInTheRoom(playerId)) {
-            this.seatMap[this.seats[playerId]] = false;
-            delete this.seats[playerId];
-            const tempIds = [];
-            this.playerIds.forEach(id => {
-                if (id !== playerId) tempIds.push(id);
-            });
-            this.playerIds = tempIds;
+            this.seatStatus[this.seatMap[playerId]] = false;
+            delete this.seatMap[playerId];
         }
     }
 
     public playerInTheRoom(playerId: string): boolean {
-        return Object.keys(this.seats).includes(playerId);
+        return this.seatMap[playerId] >= 0;
     }
 
     public start(playerId: string): boolean {
-        if (playerId !== this.creator || this.playerIds.length !== this.roomSize) {
+        if (playerId !== this.creator || Object.keys(this.seatMap).length !== this.roomSize) {
             return false;
         }
         this._assignJob();
@@ -91,11 +84,11 @@ export default class Game {
      * For simplicity (for rendering), returns a boolean list to indicate whether a seat
      */
     public getCurrentSeatMap(): Array<boolean> {
-        return this.seatMap;
+        return this.seatStatus;
     }
 
     public getSeatNumber(playerId): number {
-        return this.seats[playerId];
+        return this.seatMap[playerId];
     }
 
     public getRoomSize(): number {
@@ -103,28 +96,30 @@ export default class Game {
     }
 
     public getRoomConfiguration(): string {
-        return this.settingText ? this.settingText : this.formSettingText();
+        return this.settingText;
     }
 
     public isCreator(playerId: string): boolean {
         return this.creator === playerId;
     }
 
-    public isGameExpired(): boolean {
-        return Date.now() - this.createdTime > GAME_EXPIRATION_TIME;
+    public isRoomExpired(): boolean {
+        return Date.now() - this.createdTime > ROOM_EXPIRATION_TIME;
     }
 
     private _assignJob() {
+        // TODO: 留给game 去做
+
         // shuffle 3 times before assign
-        this.playerIds = Game._shuffle(this.playerIds);
-        this.playerIds = Game._shuffle(this.playerIds);
-        this.playerIds = Game._shuffle(this.playerIds);
-
-        for (const player of this.playerIds) {
-            this.assignment[player] = this._getNextAvailableJob();
-        }
-
-        delete this.settings;
+        // this.playerIds = Room._shuffle(this.playerIds);
+        // this.playerIds = Room._shuffle(this.playerIds);
+        // this.playerIds = Room._shuffle(this.playerIds);
+        //
+        // for (const player of this.playerIds) {
+        //     this.assignment[player] = this._getNextAvailableJob();
+        // }
+        //
+        // delete this.settings;
     }
 
     private static _shuffle(a: string[]) {
@@ -148,7 +143,7 @@ export default class Game {
         return undefined;
     }
 
-    private formSettingText() {
+    private formateSettingText() {
         const total = [];
         Object.keys(this.settings).forEach(key => total.push(`${key}: ${this.settings[key]}名`));
         return total.join(" ");

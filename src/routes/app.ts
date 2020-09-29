@@ -1,10 +1,10 @@
 import {Request, Response} from "express";
 import * as fs from "fs";
-import GameEngine from "../app/GameEngine";
-import GameError from "../app/Error/GameError.js";
-import Game from "../app/Game";
+import RoomManager from "../app/RoomManager";
+import GameError from "../app/error/GameError.js";
+import Room from "../app/Room";
 
-const engine = new GameEngine();
+const engine = new RoomManager();
 
 const descriptions = JSON.parse(fs.readFileSync(__dirname + "/../appConfigs/descriptions.json").toString());
 
@@ -19,15 +19,15 @@ export const index = (req: any, res: any) => {
 export const rooms = (req: Request, res: Response) => {
     try {
         const roomId: string = req.params.id;
-        const game: Game = engine.getGame(roomId);
+        const room: Room = engine.getRoom(roomId);
         const playerId = req.session.userId;
         res.render("room", {
             roomId: roomId,
-            configuration: game.getRoomConfiguration(),
-            isCreator: game.isCreator(playerId),
-            playerCount: game.getRoomSize(),
-            seatMap: game.getCurrentSeatMap(),
-            mySeatNumber: game.getSeatNumber(playerId) === undefined ? -1 : game.getSeatNumber(playerId)
+            configuration: room.getRoomConfiguration(),
+            isCreator: room.isCreator(playerId),
+            playerCount: room.getRoomSize(),
+            seatMap: room.getCurrentSeatMap(),
+            mySeatNumber: room.getSeatNumber(playerId) === undefined ? -1 : room.getSeatNumber(playerId)
         });
     } catch (e) {
         // res.status(404).send(e instanceof GameError ? e.getMessage() : "Invalid Request");
@@ -52,7 +52,7 @@ export const createRooms = (req: any, res: any) => {
         if (!creatorId || !settings) {
             throw new Error();
         }
-        const id = engine.newGame(creatorId, settings);
+        const id = engine.newRoom(creatorId, settings);
 
         // TODO: figure out how to handle this type of res from frontend then enable it
         // res.status(200).redirect("/rooms/" + id);
@@ -75,11 +75,11 @@ export const sit = (req: any, res: any) => {
         const roomId: string = req.body["roomId"];
         const playerId: string = req.session.userId;
         const seatNumber: number = parseInt(req.body["seatNumber"]);
-        if (!roomId || !playerId || seatNumber < 0 || seatNumber > engine.getGame(roomId).getRoomSize()) {
+        if (!roomId || !playerId || seatNumber < 0 || seatNumber > engine.getRoom(roomId).getRoomSize()) {
             throw new Error();
         }
-        const game: Game = engine.getGame(roomId);
-        const joined: boolean = game.join(playerId, seatNumber);
+        const room: Room = engine.getRoom(roomId);
+        const joined: boolean = room.join(playerId, seatNumber);
         if (joined) {
             res.json({code: 200});
         } else {
@@ -97,12 +97,12 @@ export const leaveRoom = (req: any, res: any) => {
         if (!roomId || !playerId) {
             throw new Error();
         }
-        const game: Game = engine.getGame(roomId);
-        if (game.isCreator(playerId)) {
+        const room: Room = engine.getRoom(roomId);
+        if (room.isCreator(playerId)) {
             engine.deleteGame(roomId);
             res.json({code: 200, data: "房间已解散"});
         } else {
-            game.leave(playerId);
+            room.leave(playerId);
         }
     } catch (e) {
         res.json({code: 400, data: e instanceof GameError ? e.getMessage() : "Invalid Request"});

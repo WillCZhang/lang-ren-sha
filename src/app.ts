@@ -8,7 +8,7 @@ const FileStore = require('session-file-store')(session);
 import logger from "morgan";
 
 import {createRooms, index, leaveRoom, rooms, sit} from "./routes/app";
-import Log from "./app/Logger";
+import Log from "./app/util/Logger";
 
 const app = express();
 
@@ -67,7 +67,7 @@ app.post("/sit", sit);
 app.post("/leave", leaveRoom);
 
 
-// Error Handler
+// error Handler
 // catch 404 and forward to error handler
 app.use(function (req: any, res: any, next: (arg0: any) => void) {
     next(createError(404));

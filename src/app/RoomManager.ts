@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import path from "path";
-import GameError from "./Error/GameError";
-import Game from "./Game";
-import Log from "./Logger";
+import GameError from "./error/GameError";
+import Room from "./Room";
+import Log from "./util/Logger";
 
 const cachePath = path.join(__dirname, "../data");
 const cacheFile = path.join(cachePath, "cache.json");
@@ -16,60 +16,60 @@ const GARBAGE_COLLECTION_THRESHOLD = MAX_GAME_ID / 2;
  * GameEngine is the entry point of the app. The caller, the controller in this case,
  * should perform validation before invoke the Engine.
  */
-export default class GameEngine {
-    private games: { [key: string]: Game };
+export default class RoomManager {
+    private readonly rooms: { [key: string]: Room };
     private isSaving: boolean;
 
     constructor() {
-        this.games = GameEngine._loadGames();
-        this._saveGames();
-        this._removeExpiredGames();
+        this.rooms = RoomManager.loadRooms();
+        this.saveRooms();
+        this.removeExpiredRooms();
     }
 
     /**
-     * This should create a new game in the system, and generate a unique {@code MAX_ID_LENGTH}-digit game ID
-     * for users to join the game.
+     * This should create a new room in the system, and generate a unique {@code MAX_ID_LENGTH}-digit room ID
+     * for users to join the room.
      * @param creator
      * @param settings TODO: needs interface
      * @return string id
      */
-    public newGame(creator: string, settings: any) {
-        const id: string = this._generateGameId();
-        this.games[id] = new Game(creator, settings);
-        this._saveGames();
+    public newRoom(creator: string, settings: any) {
+        const id: string = this.generateRoomId();
+        this.rooms[id] = new Room(creator, settings);
+        this.saveRooms();
         return id;
     }
 
     /**
      *
      * @param id
-     * @return Game the game
+     * @return Room the room
      */
-    public getGame(id: string) {
-        const game: Game = this.games[id];
-        if (!game) {
+    public getRoom(id: string) {
+        const room: Room = this.rooms[id];
+        if (!room) {
             throw new GameError("该房间已经被解散啦");
         }
-        if (game.isGameExpired()) {
-            delete this.games[id];
+        if (room.isRoomExpired()) {
+            delete this.rooms[id];
             throw new GameError("游戏已超时，一局游戏最长有效时间为一天 ：）");
         }
-        this._saveGames();
-        return game;
+        this.saveRooms();
+        return room;
     }
 
     public deleteGame(id: string) {
-        delete this.games[id];
-        this._saveGames();
+        delete this.rooms[id];
+        this.saveRooms();
     }
 
-    private _generateGameId() {
-        if (Object.keys(this.games).length > GARBAGE_COLLECTION_THRESHOLD) {
-            this._removeExpiredGames();
+    private generateRoomId() {
+        if (Object.keys(this.rooms).length > GARBAGE_COLLECTION_THRESHOLD) {
+            this.removeExpiredRooms();
         }
 
         let id = Math.floor(Math.random() * MAX_GAME_ID).toString();
-        while (Object.keys(this.games).includes(id)) {
+        while (Object.keys(this.rooms).includes(id)) {
             // TODO: should probably add a cool-down period in the controller if we'are hacked
             id = Math.floor(Math.random() * MAX_GAME_ID).toString();
         }
@@ -85,7 +85,7 @@ export default class GameEngine {
      * Thread-safe & recoverable save
      * @private
      */
-    private _saveGames() {
+    private saveRooms() {
         if (this.isSaving) {
             return;
         }
@@ -94,7 +94,7 @@ export default class GameEngine {
             fs.renameSync(cacheFile, cacheBackup);
         }
         // should be async to reduce latency
-        fs.writeFile(cacheFile, JSON.stringify(this.games), (err: any) => {
+        fs.writeFile(cacheFile, JSON.stringify(this.rooms), (err: any) => {
             if (fs.existsSync(cacheBackup)) {
                 fs.unlinkSync(cacheBackup);
             }
@@ -109,14 +109,14 @@ export default class GameEngine {
      * recoverable load - should run once only
      * @private
      */
-    private static _loadGames() {
+    private static loadRooms() {
         try {
             if (fs.existsSync(cacheBackup)) {
                 fs.unlinkSync(cacheFile);
                 fs.renameSync(cacheBackup, cacheFile);
             }
             const unParsedObjects = JSON.parse(fs.readFileSync(cacheFile).toString());
-            Object.keys(unParsedObjects).forEach(key => Object.setPrototypeOf(unParsedObjects[key], Game.prototype));
+            Object.keys(unParsedObjects).forEach(key => Object.setPrototypeOf(unParsedObjects[key], Room.prototype));
             return unParsedObjects;
         } catch (e) {
             fs.mkdir(cachePath, (err: any) => {
@@ -126,17 +126,17 @@ export default class GameEngine {
         }
     }
 
-    private _removeExpiredGames(): Promise<number> {
+    private removeExpiredRooms(): Promise<number> {
         return new Promise((fulfill, reject) => {
             let counter = 0;
-            for (const id of Object.keys(this.games)) {
+            for (const id of Object.keys(this.rooms)) {
                 try {
-                    this.getGame(id);
+                    this.getRoom(id);
                 } catch (e) {
                     counter++;
                 }
             }
-            Log.info(`removed ${counter} expired games`);
+            Log.info(`removed ${counter} expired rooms`);
             fulfill(counter);
         });
     }
