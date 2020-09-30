@@ -1,10 +1,10 @@
 import {Request, Response} from "express";
 import * as fs from "fs";
 import RoomManager from "../app/RoomManager";
-import GameError from "../app/error/GameError.js";
 import Room from "../app/Room";
+import AppError from "../app/error/AppError";
 
-const engine = new RoomManager();
+const roomManager = new RoomManager();
 
 const descriptions = JSON.parse(fs.readFileSync(__dirname + "/../appConfigs/descriptions.json").toString());
 
@@ -19,7 +19,7 @@ export const index = (req: any, res: any) => {
 export const rooms = (req: Request, res: Response) => {
     try {
         const roomId: string = req.params.id;
-        const room: Room = engine.getRoom(roomId);
+        const room: Room = roomManager.getRoom(roomId);
         const playerId = req.session.userId;
         res.render("room", {
             roomId: roomId,
@@ -31,7 +31,7 @@ export const rooms = (req: Request, res: Response) => {
         });
     } catch (e) {
         // res.status(404).send(e instanceof GameError ? e.getMessage() : "Invalid Request");
-        res.status(404).render("error", {message: e instanceof GameError ? e.getMessage() : "Invalid Request"});
+        res.status(404).render("error", {message: e instanceof AppError ? e.getMessage() : "Invalid Request"});
     }
 };
 
@@ -45,21 +45,21 @@ export const rooms = (req: Request, res: Response) => {
  *     }
  * }
  */
-export const createRooms = (req: any, res: any) => {
+export const createRoom = (req: any, res: any) => {
     try {
         const creatorId = req.session.userId; // req.session.userId 是房主id - unique
         const settings = JSON.parse(req.body["settings"]);
         if (!creatorId || !settings) {
             throw new Error();
         }
-        const id = engine.newRoom(creatorId, settings);
+        const id = roomManager.newRoom(creatorId, settings);
 
         // TODO: figure out how to handle this type of res from frontend then enable it
         // res.status(200).redirect("/rooms/" + id);
         res.json({code: 200, data: `/rooms/${id}`});
     } catch (e) {
         // res.status(400).send(e instanceof GameError ? e.getMessage() : "Invalid Request");
-        res.json({code: 400, data: e instanceof GameError ? e.getMessage() : "Invalid Request"});
+        res.json({code: 400, data: e instanceof AppError ? e.getMessage() : "Invalid Request"});
     }
 };
 
@@ -70,26 +70,28 @@ export const createRooms = (req: any, res: any) => {
  *     "seatNumber": number
  * }
  */
-export const sit = (req: any, res: any) => {
+export const sitInRoom = (req: any, res: any) => {
     try {
         const roomId: string = req.body["roomId"];
         const playerId: string = req.session.userId;
         const seatNumber: number = parseInt(req.body["seatNumber"]);
-        if (!roomId || !playerId || seatNumber < 0 || seatNumber > engine.getRoom(roomId).getRoomSize()) {
+        if (!roomId || !playerId || seatNumber < 0 || seatNumber > roomManager.getRoom(roomId).getRoomSize()) {
             throw new Error();
         }
-        const room: Room = engine.getRoom(roomId);
-        const joined: boolean = room.join(playerId, seatNumber);
-        if (joined) {
-            res.json({code: 200});
-        } else {
-            throw new GameError("座位已经被人抢啦，请换个座位试一试~");
-        }
+        const room: Room = roomManager.getRoom(roomId);
+        room.join(playerId, seatNumber);
+        res.json({code: 200});
     } catch (e) {
-        res.json({code: 400, data: e instanceof GameError ? e.getMessage() : "Invalid Request"});
+        res.json({code: 400, data: e instanceof AppError ? e.getMessage() : "Invalid Request"});
     }
 };
 
+/**
+ * Body json format
+ * {
+ *     "roomId": id
+ * }
+ */
 export const leaveRoom = (req: any, res: any) => {
     try {
         const roomId: string = req.body["roomId"];
@@ -97,14 +99,34 @@ export const leaveRoom = (req: any, res: any) => {
         if (!roomId || !playerId) {
             throw new Error();
         }
-        const room: Room = engine.getRoom(roomId);
+        const room: Room = roomManager.getRoom(roomId);
         if (room.isCreator(playerId)) {
-            engine.deleteGame(roomId);
+            roomManager.deleteRoom(roomId);
             res.json({code: 200, data: "房间已解散"});
         } else {
             room.leave(playerId);
         }
     } catch (e) {
-        res.json({code: 400, data: e instanceof GameError ? e.getMessage() : "Invalid Request"});
+        res.json({code: 400, data: e instanceof AppError ? e.getMessage() : "Invalid Request"});
+    }
+};
+
+/**
+ * Body json format
+ * {
+ *     "roomId": id
+ * }
+ */
+export const startGame = (req: any, res: any) => {
+    try {
+        const roomId: string = req.body["roomId"];
+        const playerId: string = req.session.userId;
+        if (!roomId || !playerId) {
+            throw new Error();
+        }
+        const room: Room = roomManager.getRoom(roomId);
+        room.start(playerId);
+    } catch (e) {
+        res.json({code: 400, data: e instanceof AppError ? e.getMessage() : "Invalid Request"});
     }
 };

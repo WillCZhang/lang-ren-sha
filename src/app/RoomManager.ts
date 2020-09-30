@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import path from "path";
-import GameError from "./error/GameError";
 import Room from "./Room";
 import Log from "./util/Logger";
+import {RoomExpireError, RoomNotFoundError} from "./error/RoomError";
 
 const cachePath = path.join(__dirname, "../data");
 const cacheFile = path.join(cachePath, "cache.json");
@@ -48,17 +48,16 @@ export default class RoomManager {
     public getRoom(id: string) {
         const room: Room = this.rooms[id];
         if (!room) {
-            throw new GameError("该房间已经被解散啦");
-        }
-        if (room.isRoomExpired()) {
+            throw new RoomNotFoundError();
+        } else if (room.isRoomExpired()) {
             delete this.rooms[id];
-            throw new GameError("游戏已超时，一局游戏最长有效时间为一天 ：）");
+            throw new RoomExpireError();
         }
         this.saveRooms();
         return room;
     }
 
-    public deleteGame(id: string) {
+    public deleteRoom(id: string) {
         delete this.rooms[id];
         this.saveRooms();
     }

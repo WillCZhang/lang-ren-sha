@@ -1,8 +1,13 @@
-import GameError from "./error/GameError.js";
+import {
+    NonCreatorStartGameError,
+    PlayerCountError,
+    RoomSizeError,
+    SeatTakenError
+} from "./error/RoomError";
 
 const ROOM_EXPIRATION_TIME = 86400 * 1000; // in ms
-const MIN_PLAYER = 4; // Not sure
-const MAX_PLAYER = 20; // Not sure
+export const MIN_PLAYER = 4; // Not sure
+export const MAX_PLAYER = 20; // Not sure
 
 export default class Room {
     private readonly createdTime: any;
@@ -17,16 +22,16 @@ export default class Room {
 
     constructor(creator: string, settings: any) {
         this.createdTime = Date.now();
-        this.creator = creator; // 房主
-        this.settings = settings; // 每个职业配比
+        this.creator = creator;
+        this.settings = settings;
         this.roomSize = 0;
         for (const job of Object.keys(settings)) {
             this.roomSize += settings[job];
         }
         if (this.roomSize < MIN_PLAYER || this.roomSize > MAX_PLAYER) {
-            throw new GameError(`一局游戏最少${MIN_PLAYER}名玩家参与，最多${MAX_PLAYER}名玩家参与`);
+            throw new RoomSizeError();
         }
-        this.settingText = this.formateSettingText();
+        this.settingText = this.formatSettingText();
         this.assignment = {}; // 玩家职业分配, Key is player ID, value is the player's job
         this.seatMap = {}; // Key is player ID, value is the player's seat number
         this.seatStatus = [];
@@ -40,20 +45,19 @@ export default class Room {
      * Should be invoked when the player sits on a chair
      * @param playerId
      * @param seatNumber
-     * @return {boolean}
      */
-    public join(playerId: string, seatNumber: number): boolean {
+    public join(playerId: string, seatNumber: number) {
         if (this.started ||
             Object.keys(this.seatMap).length >= this.roomSize ||
-            this.seatStatus[seatNumber]) {
-            return false;
+            seatNumber > this.roomSize ||
+            this.seatStatus[seatNumber]) { // the three conditions above means we are hacked
+            throw new SeatTakenError();
         }
         if (this.playerInTheRoom(playerId)) {
             this.seatStatus[this.seatMap[playerId]] = false;
         }
         this.seatStatus[seatNumber] = true;
         this.seatMap[playerId] = seatNumber;
-        return true;
     }
 
     /**
@@ -72,8 +76,10 @@ export default class Room {
     }
 
     public start(playerId: string): boolean {
-        if (playerId !== this.creator || Object.keys(this.seatMap).length !== this.roomSize) {
-            return false;
+        if (!this.isCreator(playerId)) {
+            throw new NonCreatorStartGameError();
+        } else if (Object.keys(this.seatMap).length !== this.roomSize) {
+            throw new PlayerCountError();
         }
         this._assignJob();
         this.started = true;
@@ -143,7 +149,7 @@ export default class Room {
         return undefined;
     }
 
-    private formateSettingText() {
+    private formatSettingText() {
         const total = [];
         Object.keys(this.settings).forEach(key => total.push(`${key}: ${this.settings[key]}名`));
         return total.join(" ");

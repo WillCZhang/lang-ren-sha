@@ -7,7 +7,7 @@ import session from "express-session";
 const FileStore = require('session-file-store')(session);
 import logger from "morgan";
 
-import {createRooms, index, leaveRoom, rooms, sit} from "./routes/appRouters";
+import {createRoom, index, leaveRoom, rooms, sitInRoom} from "./routes/appRouters";
 import Log from "./app/util/Logger";
 
 const app = express();
@@ -62,8 +62,8 @@ app.use((req: any, res: any, next: any) => {
 // Router Config
 app.get("/", index);
 app.get("/rooms/:id", rooms);
-app.post("/create-room", createRooms);
-app.post("/sit", sit);
+app.post("/create-room", createRoom);
+app.post("/sit", sitInRoom);
 app.post("/leave", leaveRoom);
 
 

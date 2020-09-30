@@ -1,5 +1,6 @@
-export default class GameError extends Error {
-	public message: any;
+export default class AppError extends Error {
+    public message: any;
+    private language;
 
     constructor(message: string) {
         super();
