@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build": "tsc && yarn lint",
     "pretty": "prettier --config ./.prettierrc.json --write \"./**/*.ts\" && yarn fix",
     "lint": "eslint . --ext .ts",
     "fix": "eslint . --ext .ts --fix",
-    "start": "tsc && yarn lint && node src/app.js"
+    "start": "node src/app.js"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.2",
