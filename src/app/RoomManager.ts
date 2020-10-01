@@ -2,7 +2,7 @@ import * as fs from "fs";
 import path from "path";
 import Room from "./Room";
 import Log from "./util/Logger";
-import {RoomExpireError, RoomNotFoundError} from "./error/RoomError";
+import {RoomExpireError, RoomNotFoundError, TooManyRoomsError} from "./error/RoomError";
 
 const cachePath = path.join(__dirname, "../data");
 const cacheFile = path.join(cachePath, "cache.json");
@@ -19,6 +19,7 @@ const GARBAGE_COLLECTION_THRESHOLD = MAX_GAME_ID / 2;
 export default class RoomManager {
     private readonly rooms: { [key: string]: Room };
     private isSaving: boolean;
+    private isGarbageCollecting: boolean;
 
     constructor() {
         this.rooms = RoomManager.loadRooms();
@@ -65,6 +66,10 @@ export default class RoomManager {
     private generateRoomId() {
         if (Object.keys(this.rooms).length > GARBAGE_COLLECTION_THRESHOLD) {
             this.removeExpiredRooms();
+        }
+
+        if (Object.keys(this.rooms).length > MAX_GAME_ID) {
+            throw new TooManyRoomsError();
         }
 
         let id = Math.floor(Math.random() * MAX_GAME_ID).toString();
@@ -126,6 +131,10 @@ export default class RoomManager {
     }
 
     private removeExpiredRooms(): Promise<number> {
+        if (this.isGarbageCollecting) {
+            return Promise.reject();
+        }
+        this.isGarbageCollecting = true;
         return new Promise((fulfill, reject) => {
             let counter = 0;
             for (const id of Object.keys(this.rooms)) {
@@ -135,6 +144,7 @@ export default class RoomManager {
                     counter++;
                 }
             }
+            this.isGarbageCollecting = false;
             Log.info(`removed ${counter} expired rooms`);
             fulfill(counter);
         });

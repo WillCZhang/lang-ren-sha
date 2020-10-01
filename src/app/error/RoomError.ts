@@ -24,3 +24,7 @@ export class PlayerCountError extends AppError {
 export class SeatTakenError extends AppError {
     public readonly message =  "座位已经被抢啦，换一个试试吧";
 }
+
+export class TooManyRoomsError extends AppError{
+    public readonly message = "游戏太火爆啦，玩的人比较多，请明天再来玩吧~";
+}

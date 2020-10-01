@@ -105,6 +105,7 @@ export const leaveRoom = (req: any, res: any) => {
             res.json({code: 200, data: "房间已解散"});
         } else {
             room.leave(playerId);
+            res.json({code: 200, data: "退出房间"})
         }
     } catch (e) {
         res.json({code: 400, data: e instanceof AppError ? e.getMessage() : "Invalid Request"});

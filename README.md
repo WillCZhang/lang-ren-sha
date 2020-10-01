@@ -1,6 +1,8 @@
 # 狼人杀面杀小法官
 
-run project by `node start`
+Demo: https://lang-ren-sha.herokuapp.com
+
+run project by `yarn start`
 
 ### Backend
 

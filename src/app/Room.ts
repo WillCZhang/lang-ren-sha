@@ -152,6 +152,6 @@ export default class Room {
     private formatSettingText() {
         const total = [];
         Object.keys(this.settings).forEach(key => total.push(`${key}: ${this.settings[key]}名`));
-        return total.join(" ");
+        return total.join("\n");
     }
 }
