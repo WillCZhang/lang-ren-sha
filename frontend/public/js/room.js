@@ -20,4 +20,5 @@ function cancel(roomdId) {
     });
 }
 
-setTimeout(() => window.location.reload(), 5000);
+// I doubt refresh every 3 second will be heavy...
+setTimeout(() => window.location.reload(), 3000);

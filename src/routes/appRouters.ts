@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import * as fs from "fs";
 import RoomManager from "../app/RoomManager";
-import Room from "../app/Room";
+import Room from "../app/room/Room";
 import AppError from "../app/error/AppError";
 
 const roomManager = new RoomManager();
@@ -23,11 +23,11 @@ export const rooms = (req: Request, res: Response) => {
         const playerId = req.session.userId;
         res.render("room", {
             roomId: roomId,
-            configuration: room.getRoomConfiguration(),
+            configuration: room.getGameConfigurationDisplayText(),
             isCreator: room.isCreator(playerId),
             playerCount: room.getRoomSize(),
-            seatMap: room.getCurrentSeatMap(),
-            mySeatNumber: room.getSeatNumber(playerId) === undefined ? -1 : room.getSeatNumber(playerId)
+            seatMap: room.getCurrentSeatStatus(),
+            mySeatNumber: room.getSeatNumber(playerId)
         });
     } catch (e) {
         // res.status(404).send(e instanceof GameError ? e.getMessage() : "Invalid Request");
@@ -74,7 +74,7 @@ export const sitInRoom = (req: any, res: any) => {
     try {
         const roomId: string = req.body["roomId"];
         const playerId: string = req.session.userId;
-        const seatNumber: number = parseInt(req.body["seatNumber"]);
+        const seatNumber: number = parseInt(req.body["seatNumber"], 10);
         if (!roomId || !playerId || seatNumber < 0 || seatNumber > roomManager.getRoom(roomId).getRoomSize()) {
             throw new Error();
         }

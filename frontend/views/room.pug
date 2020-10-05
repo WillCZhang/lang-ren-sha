@@ -24,7 +24,7 @@ block content
             div(class="col-lg-3" style="margin-top: 20px")
                 div(class="card flex-md-row mb-6 box-shadow h-md-250")
                     - let img = seat? "background.png":"empty.png"
-                    img(class="card-img-top flex-auto d-none d-md-block" style="width: 100px; height: 100px;" src="/images/" + img alt="Card image cap")
+                    img(class="card-img-top flex-auto d-md-block" style="width: 100px; height: 100px;" src="/images/" + img alt="Card image cap")
                     div(class="card-body")
                         h5(class="card-title")= i + 1 + "号玩家"
                         p(class="card-text mb-auto")

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import path from "path";
-import Room from "./Room";
+import Room from "./room/Room";
 import Log from "./util/Logger";
 import {RoomExpireError, RoomNotFoundError, TooManyRoomsError} from "./error/RoomError";
 
@@ -12,10 +12,6 @@ const MAX_ID_LENGTH = 8;
 const MAX_GAME_ID = 100000000;
 const GARBAGE_COLLECTION_THRESHOLD = MAX_GAME_ID / 2;
 
-/**
- * GameEngine is the entry point of the app. The caller, the controller in this case,
- * should perform validation before invoke the Engine.
- */
 export default class RoomManager {
     private readonly rooms: { [key: string]: Room };
     private isSaving: boolean;
@@ -120,7 +116,7 @@ export default class RoomManager {
                 fs.renameSync(cacheBackup, cacheFile);
             }
             const unParsedObjects = JSON.parse(fs.readFileSync(cacheFile).toString());
-            Object.keys(unParsedObjects).forEach(key => Object.setPrototypeOf(unParsedObjects[key], Room.prototype));
+            Object.keys(unParsedObjects).forEach((key) => Object.setPrototypeOf(unParsedObjects[key], Room.prototype));
             return unParsedObjects;
         } catch (e) {
             fs.mkdir(cachePath, (err: any) => {

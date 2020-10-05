@@ -1,4 +1,4 @@
-import {MAX_PLAYER, MIN_PLAYER} from "../Room";
+import {MAX_PLAYER, MIN_PLAYER} from "../room/Room";
 import AppError from "./AppError";
 
 export class RoomNotFoundError extends AppError {
