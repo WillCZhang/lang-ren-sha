@@ -21,10 +21,7 @@ export default class Seat {
 
     public leave() {
         this.taken = false;
-    }
-
-    public getOccupation(): Occupation {
-        return this.occupation;
+        this.playerId = undefined;
     }
 
     public isTaken(): boolean {
@@ -39,5 +36,13 @@ export default class Seat {
 
     public getSeatNumber(): number {
         return this.seatNumber;
+    }
+
+    public getOccupation(): Occupation {
+        return this.occupation;
+    }
+
+    public getPlayerId(): string {
+        return this.playerId;
     }
 }

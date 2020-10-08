@@ -3,6 +3,8 @@ import path from "path";
 import Room from "./room/Room";
 import Log from "./util/Logger";
 import {RoomExpireError, RoomNotFoundError, TooManyRoomsError} from "./error/RoomError";
+import Seat from "./room/Seat";
+import Game from "./game/Game";
 
 const cachePath = path.join(__dirname, "../data");
 const cacheFile = path.join(cachePath, "cache.json");
@@ -116,7 +118,11 @@ export default class RoomManager {
                 fs.renameSync(cacheBackup, cacheFile);
             }
             const unParsedObjects = JSON.parse(fs.readFileSync(cacheFile).toString());
-            Object.keys(unParsedObjects).forEach((key) => Object.setPrototypeOf(unParsedObjects[key], Room.prototype));
+            Object.keys(unParsedObjects).forEach((key) => {
+                Object.setPrototypeOf(unParsedObjects[key], Room.prototype);
+                unParsedObjects[key].seats.forEach((s) => Object.setPrototypeOf(s, Seat.prototype));
+                Object.setPrototypeOf(unParsedObjects[key].game, Game.prototype);
+            });
             return unParsedObjects;
         } catch (e) {
             fs.mkdir(cachePath, (err: any) => {

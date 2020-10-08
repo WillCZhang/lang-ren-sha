@@ -35,7 +35,7 @@ block content
             div(class="text-center p-4")
                 if isCreator
                     div(class="mt-5")
-                        a(class="btn btn-block btn-primary btn-lg" style="color: white") 开始游戏！
+                        a(class="btn btn-block btn-primary btn-lg" style="color: white" onclick="start(" + roomId + ")") 开始游戏！
                 else
                     h4 请等待房主开始游戏
                 div(class="mt-5")

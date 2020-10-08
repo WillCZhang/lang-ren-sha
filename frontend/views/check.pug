@@ -1,0 +1,21 @@
+extends layout
+
+block content
+    div(class="row w-100" style="margin-top: 20px")
+        div(class="col-lg-4 mx-auto" style="margin-top: 20px")
+            div(class="card flex-md-row mb-3 box-shadow h-md-250 justify-content-center" id="hide")
+                img(class="flex-auto d-md-block justify-content-center" style="width: 300px; height: 300px;" src="/images/background.png" alt="Card image cap")
+            div(class="card mb-3 box-shadow h-md-250 justify-content-center" id="show" hidden)
+                img(class="flex-auto d-md-block justify-content-center" style="width: 300px; height: 300px;" src="/images/" + occupation + ".png" alt="Card image cap")
+                div(class="card-body")
+                    h5= occupation
+    div(class="row w-100" style="margin-top: 40px")
+        div(class="col-lg-4 mx-auto")
+            a(class="btn btn-block btn-primary" style="color: white" id="check" onclick="check()") 查看身份
+    div(class="row w-100" style="margin-top: 40px")
+        div(class="col-lg-4 mx-auto")
+            div(class="text-center p-4")
+                if isCreator
+                    div(class="mt-5")
+                        a(class="btn btn-block btn-warning btn-lg") 进入第一晚
+    script(src="/js/check.js")

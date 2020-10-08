@@ -8,7 +8,23 @@ const roomManager = new RoomManager();
 
 const descriptions = JSON.parse(fs.readFileSync(__dirname + "/../appConfigs/descriptions.json").toString());
 
-// TODO: add multi-language support
+function renderRoomBeforeGameStart(roomId: string, room: Room, playerId) {
+    return {
+        roomId: roomId,
+        configuration: room.getGameConfigurationDisplayText(),
+        isCreator: room.isCreator(playerId),
+        playerCount: room.getRoomSize(),
+        seatMap: room.getCurrentSeatStatus(),
+        mySeatNumber: room.getSeatNumber(playerId)
+    };
+}
+
+function renderRoomAfterGameStart(roomId: string, room: Room, playerId) {
+    return {
+        isCreator: room.isCreator(playerId),
+        occupation: room.getOccupation(playerId)
+    };
+}
 
 /* GET */
 
@@ -16,19 +32,16 @@ export const index = (req: any, res: any) => {
     res.render("index", {descriptions: descriptions});
 };
 
-export const rooms = (req: Request, res: Response) => {
+export const renderRoom = (req: Request, res: Response) => {
     try {
         const roomId: string = req.params.id;
-        const room: Room = roomManager.getRoom(roomId);
         const playerId = req.session.userId;
-        res.render("room", {
-            roomId: roomId,
-            configuration: room.getGameConfigurationDisplayText(),
-            isCreator: room.isCreator(playerId),
-            playerCount: room.getRoomSize(),
-            seatMap: room.getCurrentSeatStatus(),
-            mySeatNumber: room.getSeatNumber(playerId)
-        });
+        const room: Room = roomManager.getRoom(roomId);
+        if (room.isGameStarted()) {
+            res.render("game", renderRoomAfterGameStart(roomId, room, playerId))
+        } else {
+            res.render("room", renderRoomBeforeGameStart(roomId, room, playerId));
+        }
     } catch (e) {
         // res.status(404).send(e instanceof GameError ? e.getMessage() : "Invalid Request");
         res.status(404).render("error", {message: e instanceof AppError ? e.getMessage() : "Invalid Request"});
@@ -127,6 +140,7 @@ export const startGame = (req: any, res: any) => {
         }
         const room: Room = roomManager.getRoom(roomId);
         room.start(playerId);
+        res.json({code: 200, data: "/"})
     } catch (e) {
         res.json({code: 400, data: e instanceof AppError ? e.getMessage() : "Invalid Request"});
     }

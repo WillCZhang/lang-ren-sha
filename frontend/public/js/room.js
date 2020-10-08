@@ -20,5 +20,12 @@ function cancel(roomdId) {
     });
 }
 
+function start(roomId) {
+    $.post('/start', {roomId: roomId}, () => {
+        localStorage.clear();
+        window.location.assign("/");
+    });
+}
+
 // I doubt refresh every 3 second will be heavy...
 setTimeout(() => window.location.reload(), 3000);
